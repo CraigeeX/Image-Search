@@ -1,39 +1,457 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Image Search App</title>
-    <link rel="stylesheet" href="style.css" />
-    <link rel="jssheet" href="index.js" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poetry Composer - CIARA Tools</title>
+    <style>
+        :root {
+            --bg-primary: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            --bg-secondary: rgba(26, 26, 46, 0.9);
+            --bg-card: rgba(255, 255, 255, 0.05);
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --accent-primary: #00d4ff;
+            --accent-secondary: #0066ff;
+            --shadow: rgba(0, 212, 255, 0.1);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-primary);
+            min-height: 100vh;
+            color: var(--text-primary);
+        }
+
+        .header {
+            text-align: center;
+            padding: 40px 20px;
+            position: relative;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 25px;
+            padding: 10px 20px;
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .composer-container {
+            max-width: 800px;
+            margin: 40px auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 0 20px;
+        }
+
+        .input-panel, .output-panel {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid var(--border);
+        }
+
+        .panel-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: var(--accent-primary);
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--accent-primary);
+        }
+
+        .generate-btn {
+            background: linear-gradient(135deg, var(--accent-secondary), var(--accent-primary));
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .poetry-output {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 300px;
+            white-space: pre-wrap;
+            font-family: 'Georgia', serif;
+            line-height: 1.8;
+            font-size: 1.1rem;
+        }
+
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 50px;
+            color: var(--accent-primary);
+        }
+
+        .spinner {
+            border: 3px solid var(--border);
+            border-top: 3px solid var(--accent-primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .themes-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .theme-btn {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .theme-btn:hover {
+            border-color: var(--accent-primary);
+            background: var(--accent-primary);
+            color: white;
+        }
+
+        .copy-btn {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 15px;
+            color: var(--text-primary);
+            cursor: pointer;
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+
+        .copy-btn:hover {
+            border-color: var(--accent-primary);
+        }
+
+        @media (max-width: 768px) {
+            .composer-container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .themes-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
+<body data-theme="dark">
+    <div class="header">
+        <a href="../index.html" class="back-btn">← Back to CIARA Hub</a>
+        <div class="tool-title">
+            <div class="tool-icon" style="font-size: 4rem;">📝</div>
+            <h1 style="font-size: 2.5rem; background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">AI Poetry Composer</h1>
+        </div>
+    </div>
 
-<body>
-    <h1>Image Search App</h1>
-    
-    <div class="toggle-container">
-        <label class="switch">
-            <input type="checkbox" id="toggle" />
-            <span class="slider round"></span>
-        </label>
-        <p>Toggle Dark/Light Mode</p>
+    <div class="composer-container">
+        <div class="input-panel">
+            <h2 class="panel-title">Poetry Settings</h2>
+            
+            <div class="form-group">
+                <label for="theme">Poetry Theme</label>
+                <input type="text" id="theme" placeholder="e.g., love, nature, friendship, dreams...">
+                
+                <div class="themes-grid">
+                    <button class="theme-btn" onclick="setTheme('Love and Romance')">Love & Romance</button>
+                    <button class="theme-btn" onclick="setTheme('Nature and Seasons')">Nature & Seasons</button>
+                    <button class="theme-btn" onclick="setTheme('Friendship')">Friendship</button>
+                    <button class="theme-btn" onclick="setTheme('Life Journey')">Life Journey</button>
+                    <button class="theme-btn" onclick="setTheme('Hope and Dreams')">Hope & Dreams</button>
+                    <button class="theme-btn" onclick="setTheme('Memories')">Memories</button>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="style">Poetry Style</label>
+                <select id="style">
+                    <option value="free-verse">Free Verse</option>
+                    <option value="sonnet">Sonnet</option>
+                    <option value="haiku">Haiku</option>
+                    <option value="limerick">Limerick</option>
+                    <option value="ballad">Ballad</option>
+                    <option value="acrostic">Acrostic</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="length">Length</label>
+                <select id="length">
+                    <option value="short">Short (4-8 lines)</option>
+                    <option value="medium" selected>Medium (12-16 lines)</option>
+                    <option value="long">Long (20+ lines)</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="mood">Mood (Optional)</label>
+                <select id="mood">
+                    <option value="">Any Mood</option>
+                    <option value="joyful">Joyful</option>
+                    <option value="melancholy">Melancholy</option>
+                    <option value="peaceful">Peaceful</option>
+                    <option value="passionate">Passionate</option>
+                    <option value="mysterious">Mysterious</option>
+                    <option value="uplifting">Uplifting</option>
+                </select>
+            </div>
+            
+            <button class="generate-btn" id="generateBtn" onclick="generatePoetry()">
+                ✨ Generate Poetry
+            </button>
+        </div>
+        
+        <div class="output-panel">
+            <h2 class="panel-title">Generated Poetry</h2>
+            
+            <div class="loading-spinner" id="loadingSpinner">
+                <div class="spinner"></div>
+                <p>AI is composing your poetry...</p>
+            </div>
+            
+            <div class="poetry-output" id="poetryOutput">
+                Your beautiful poetry will appear here. 
+                
+Set a theme and click "Generate Poetry" to begin creating your masterpiece.
+            </div>
+            
+            <button class="copy-btn" onclick="copyPoetry()">📋 Copy Poetry</button>
+        </div>
     </div>
-    
-    <form>
-        <input type="text" id="search-input" placeholder="Search for images..." />
-        <button id="search-button">Search</button>
-    </form>
-    
-    <div class="search-results">
-        <!-- Image search results will be displayed here -->
-    </div>
-    
-    <button id="show-more-button">Show more</button>
-    
-    <script src="index.js"></script>
+
+    <script>
+        function setTheme(theme) {
+            document.getElementById('theme').value = theme;
+        }
+
+        async function generatePoetry() {
+            const theme = document.getElementById('theme').value || 'life';
+            const style = document.getElementById('style').value;
+            const length = document.getElementById('length').value;
+            const mood = document.getElementById('mood').value;
+            
+            const generateBtn = document.getElementById('generateBtn');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const poetryOutput = document.getElementById('poetryOutput');
+            
+            // Show loading
+            generateBtn.disabled = true;
+            generateBtn.textContent = 'Composing...';
+            loadingSpinner.style.display = 'block';
+            poetryOutput.style.display = 'none';
+            
+            // Simulate AI generation delay
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            
+            // Generate poetry based on style and theme
+            const poetry = createPoetry(theme, style, length, mood);
+            
+            // Show result
+            loadingSpinner.style.display = 'none';
+            poetryOutput.style.display = 'block';
+            poetryOutput.textContent = poetry;
+            
+            generateBtn.disabled = false;
+            generateBtn.textContent = '✨ Generate Poetry';
+            
+            incrementToolUsage();
+        }
+
+        function createPoetry(theme, style, length, mood) {
+            const poems = {
+                'free-verse': {
+                    'Love and Romance': `In the quiet moments between heartbeats,
+I find your name written in starlight,
+Each syllable a promise whispered
+To the universe that listens.
+
+Your laughter becomes my favorite song,
+Playing on repeat in chambers
+Of a heart that learned to dance
+Only when you walked into the room.
+
+Love is not the grand gesture,
+But the gentle way you hold space
+For all my broken pieces,
+Making them feel like treasures.`,
+
+                    'Nature and Seasons': `Autumn leaves spiral down like memories,
+Golden and amber thoughts
+Falling softly on the earth
+Of what was and what will be.
+
+The trees stand bare and honest,
+Their truth exposed to winter wind,
+Teaching us that letting go
+Can be the most beautiful act.
+
+In spring, they will bloom again,
+Reminding us that endings
+Are just beginnings wearing
+Different clothes.`,
+
+                    'default': `In the realm of ${theme},
+Where emotions freely flow,
+Words dance upon the page,
+With grace they ebb and grow.
+
+This AI-generated verse,
+A placeholder it may be,
+But real implementation would
+Create poetry beautifully.
+
+With ${mood} creative mind,
+And prompts both rich and deep,
+Poetry would come alive,
+Making readers laugh and weep.`
+                },
+                
+                'haiku': {
+                    'Nature and Seasons': `Cherry blossoms fall
+Petals dance on morning breeze
+Spring's gentle farewell`,
+                    
+                    'Love and Romance': `Your smile, warm sunrise
+Heart blooms like spring flowers do
+Love in three short lines`,
+                    
+                    'default': `${theme} flows through life
+Like rivers seeking the sea
+Beauty in each breath`
+                },
+                
+                'sonnet': {
+                    'Love and Romance': `When first I saw you standing in the light,
+My heart forgot the rhythm it had known,
+And suddenly the world seemed twice as bright,
+As if I'd never truly seen its tone.
+
+Your eyes, like stars that pierce the darkest night,
+Became my guide through paths I'd never shown,
+And every word you spoke felt like a sight
+Of paradise that I could call my own.
+
+But love is more than beauty's fleeting face,
+It's choosing you through every joy and tear,
+It's finding in your arms my resting place,
+And knowing that with you I have no fear.
+
+So let these fourteen lines my truth convey:
+I choose to love you more with every day.`,
+                
+                    'default': `Upon the theme of ${theme} I write,
+These fourteen lines in meter and in rhyme,
+Though demo version cannot capture quite
+The depth that true AI would give in time...
+
+[This is a demo version - full sonnets would be 14 lines with proper rhyme scheme]`
+                },
+                
+                'limerick': {
+                    'default': `There once was a ${theme} so bright,
+That filled every soul with delight,
+It danced through the day,
+In its wonderful way,
+And made everything perfectly right!`
+                }
+            };
+
+            const stylePoems = poems[style] || poems['free-verse'];
+            return stylePoems[theme] || stylePoems['default'];
+        }
+
+        function copyPoetry() {
+            const poetryText = document.getElementById('poetryOutput').textContent;
+            navigator.clipboard.writeText(poetryText).then(() => {
+                const copyBtn = document.querySelector('.copy-btn');
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = '✅ Copied!';
+                setTimeout(() => {
+                    copyBtn.textContent = originalText;
+                }, 2000);
+            });
+        }
+
+        function incrementToolUsage() {
+            const count = parseInt(localStorage.getItem('poetryComposerUsage') || '0') + 1;
+            localStorage.setItem('poetryComposerUsage', count);
+        }
+
+        const savedTheme = localStorage.getItem('ciaraTheme') || 'dark';
+        document.body.setAttribute('data-theme', savedTheme);
+    </script>
 </body>
-
 </html>
-
